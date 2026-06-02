@@ -8,11 +8,19 @@ from forge_module_sdk.param import Param
 
 
 class ForgeModule:
-    def __init__(self, name: str, version: str, platform: str, description: str = ""):
+    def __init__(
+        self,
+        name: str,
+        version: str,
+        platform: str,
+        description: str = "",
+        category: str = "other",
+    ):
         self.name = name
         self.version = version
         self.platform = platform
         self.description = description
+        self.category = category
         self._functions: list[dict] = []
         self._handlers: dict[str, callable] = {}
         self._start_time = time.time()
@@ -43,6 +51,7 @@ class ForgeModule:
                 "version": self.version,
                 "platform": self.platform,
                 "description": self.description,
+                "category": self.category,
                 "functions": self._functions,
             })
 

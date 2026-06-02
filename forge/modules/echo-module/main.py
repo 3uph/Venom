@@ -11,6 +11,7 @@ module = ForgeModule(
     version="1.0",
     platform="linux",
     description="Test module that echoes input files with optional renaming",
+    category="other",
 )
 
 
