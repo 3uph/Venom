@@ -1,5 +1,7 @@
-import { Routes, Route, Link, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
+import ProjectListPage from '../projects/ProjectListPage';
+import ProjectDetailPage from '../projects/ProjectDetailPage';
 
 const navItems = [
   { path: '/projects', label: 'Projects' },
@@ -45,8 +47,9 @@ export default function AppLayout() {
       </nav>
       <main style={{ flex: 1, padding: '1.5rem', overflow: 'auto' }}>
         <Routes>
-          <Route path="/" element={<div>Select a section from the sidebar.</div>} />
-          <Route path="/projects" element={<div>Projects (next task)</div>} />
+          <Route path="/" element={<Navigate to="/projects" replace />} />
+          <Route path="/projects" element={<ProjectListPage />} />
+          <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
           <Route path="/modules" element={<div>Modules (next task)</div>} />
         </Routes>
       </main>
