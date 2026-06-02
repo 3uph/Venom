@@ -8,6 +8,7 @@ from api.auth.routes import router as auth_router
 from api.projects.routes import router as projects_router
 from api.modules.routes import router as modules_router
 from api.pipelines.routes import router as pipelines_router, authed_router as pipelines_authed_router
+from api.templates.routes import router as templates_router, pipeline_extra as templates_pipeline_extra
 
 app = FastAPI(title="Forge API")
 
@@ -24,6 +25,8 @@ app.include_router(projects_router)
 app.include_router(modules_router)
 app.include_router(pipelines_router)
 app.include_router(pipelines_authed_router)
+app.include_router(templates_router)
+app.include_router(templates_pipeline_extra)
 
 
 @app.on_event("startup")
