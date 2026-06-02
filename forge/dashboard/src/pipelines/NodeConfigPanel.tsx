@@ -1,22 +1,24 @@
 import { useEffect, useState } from 'react';
 import api from '../api/client';
 
-interface ModuleFunction {
+interface ManifestParam {
   name: string;
-  description: string;
-  params: { name: string; type: string; required: boolean; options?: string[]; description?: string }[];
+  type: string;
+  required: boolean;
+  options?: string[];
+  description?: string;
+}
+
+interface ManifestFunction {
+  name: string;
+  description?: string;
+  params: ManifestParam[];
 }
 
 interface Module {
   id: string;
   name: string;
-  manifest_cache: { functions?: ModuleFunction[] } | null;
-}
-
-interface ProjectFile {
-  id: string;
-  filename: string;
-  file_type: string;
+  manifest_cache: { functions?: ManifestFunction[] } | null;
 }
 
 interface Props {
@@ -28,11 +30,9 @@ interface Props {
 
 export default function NodeConfigPanel({ nodeData, projectId, onUpdate, onClose }: Props) {
   const [modules, setModules] = useState<Module[]>([]);
-  const [files, setFiles] = useState<ProjectFile[]>([]);
 
   useEffect(() => {
     api.get('/modules').then((r) => setModules(r.data));
-    api.get(`/projects/${projectId}`).then((r) => setFiles(r.data.files || []));
   }, [projectId]);
 
   const selectedModule = modules.find((m) => m.id === nodeData.module_id);
@@ -79,11 +79,13 @@ export default function NodeConfigPanel({ nodeData, projectId, onUpdate, onClose
           <select
             value={nodeData.function || ''}
             onChange={(e) => {
-              const fn = functions.find((f) => f.name === e.target.value);
-              handleChange('function', e.target.value);
-              handleChange('module_name', selectedModule.name);
-              handleChange('label', `${selectedModule.name}: ${e.target.value}`);
-              if (fn) handleChange('params', {});
+              const newFn = e.target.value;
+              const fn = functions.find((f) => f.name === newFn);
+              const next: Record<string, any> = { ...nodeData, function: newFn };
+              next.module_name = selectedModule.name;
+              next.label = `${selectedModule.name}: ${newFn}`;
+              if (fn) next.params = {};
+              onUpdate(next);
             }}
             style={{ ...inputStyle, marginBottom: '0.75rem' }}
           >
@@ -93,40 +95,57 @@ export default function NodeConfigPanel({ nodeData, projectId, onUpdate, onClose
         </>
       )}
 
-      {selectedFn && selectedFn.params.map((p) => (
-        <div key={p.name} style={{ marginBottom: '0.5rem' }}>
-          <label style={{ color: '#888', fontSize: '0.8rem' }}>
-            {p.name} ({p.type}){p.required && ' *'}
-          </label>
-          {p.type === 'enum' && p.options ? (
-            <select
-              value={nodeData.params?.[p.name] || ''}
-              onChange={(e) => handleParamChange(p.name, e.target.value)}
-              style={inputStyle}
-            >
-              <option value="">Select...</option>
-              {p.options.map((o) => <option key={o} value={o}>{o}</option>)}
-            </select>
-          ) : p.type === 'file' ? (
-            <select
-              value={nodeData.params?.[p.name] || ''}
-              onChange={(e) => handleParamChange(p.name, e.target.value)}
-              style={inputStyle}
-            >
-              <option value="">Select file...</option>
-              <option value="prev:auto">From previous node</option>
-              {files.map((f) => <option key={f.id} value={`file:${f.id}`}>{f.filename}</option>)}
-            </select>
-          ) : (
-            <input
-              value={nodeData.params?.[p.name] || ''}
-              onChange={(e) => handleParamChange(p.name, e.target.value)}
-              placeholder={p.description || p.name}
-              style={inputStyle}
-            />
-          )}
-        </div>
-      ))}
+      {selectedFn && (() => {
+        const nonFileParams = selectedFn.params.filter((p) => p.type !== 'file');
+        if (nonFileParams.length === 0) {
+          return (
+            <div style={{ color: '#666', fontSize: '0.75rem' }}>
+              This function has no inline parameters. File inputs are wired in the canvas.
+            </div>
+          );
+        }
+        return nonFileParams.map((p) => (
+          <div key={p.name} style={{ marginBottom: '0.5rem' }}>
+            <label style={{ color: '#888', fontSize: '0.8rem' }}>
+              {p.name} ({p.type}){p.required && ' *'}
+            </label>
+            {p.type === 'enum' && p.options ? (
+              <select
+                value={nodeData.params?.[p.name] || ''}
+                onChange={(e) => handleParamChange(p.name, e.target.value)}
+                style={inputStyle}
+              >
+                <option value="">Select...</option>
+                {p.options.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            ) : (
+              <input
+                value={nodeData.params?.[p.name] || ''}
+                onChange={(e) => handleParamChange(p.name, e.target.value)}
+                placeholder={p.description || p.name}
+                style={inputStyle}
+              />
+            )}
+          </div>
+        ));
+      })()}
+
+      {selectedFn && (() => {
+        const fileParams = selectedFn.params.filter((p) => p.type === 'file');
+        if (fileParams.length === 0) return null;
+        return (
+          <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #333' }}>
+            <div style={{ color: '#666', fontSize: '0.75rem', marginBottom: '0.3rem' }}>
+              File inputs (wire from canvas):
+            </div>
+            {fileParams.map((p) => (
+              <div key={p.name} style={{ color: '#888', fontSize: '0.8rem' }}>
+                ◀ {p.name}{p.required ? '*' : ''}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
   );
 }

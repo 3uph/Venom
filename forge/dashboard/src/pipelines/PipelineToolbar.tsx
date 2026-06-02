@@ -9,15 +9,26 @@ interface Props {
   onSave: () => void;
   onExecute: () => void;
   executing: boolean;
+  canExecute: boolean;
+  validationCount: number;
 }
 
-export default function PipelineToolbar({ modules, onAddNode, onSave, onExecute, executing }: Props) {
+export default function PipelineToolbar({
+  modules, onAddNode, onSave, onExecute, executing, canExecute, validationCount,
+}: Props) {
+  const executeDisabled = executing || !canExecute;
+  const executeTitle = !canExecute
+    ? `Pipeline has ${validationCount} validation issue${validationCount === 1 ? '' : 's'}`
+    : executing
+    ? 'Pipeline running...'
+    : 'Run pipeline';
+
   return (
     <div style={{
       display: 'flex', gap: '0.5rem', padding: '0.5rem 1rem',
       background: '#1a1a1a', borderBottom: '1px solid #333', alignItems: 'center',
     }}>
-      <span style={{ color: '#888', fontSize: '0.85rem', marginRight: '0.5rem' }}>Add node:</span>
+      <span style={{ color: '#888', fontSize: '0.85rem', marginRight: '0.5rem' }}>Add module:</span>
       {modules.map((m) => (
         <button key={m.id} onClick={() => onAddNode(m.id, m.name)}
           style={{
@@ -34,10 +45,19 @@ export default function PipelineToolbar({ modules, onAddNode, onSave, onExecute,
       }}>
         Save
       </button>
-      <button onClick={onExecute} disabled={executing} style={{
-        padding: '0.3rem 0.8rem', background: executing ? '#555' : '#ff4444', border: 'none',
-        borderRadius: '4px', color: '#fff', cursor: executing ? 'default' : 'pointer',
-      }}>
+      <button
+        onClick={onExecute}
+        disabled={executeDisabled}
+        title={executeTitle}
+        style={{
+          padding: '0.3rem 0.8rem',
+          background: executeDisabled ? '#444' : '#ff4444',
+          border: 'none',
+          borderRadius: '4px',
+          color: executeDisabled ? '#888' : '#fff',
+          cursor: executeDisabled ? 'not-allowed' : 'pointer',
+        }}
+      >
         {executing ? 'Running...' : 'Execute'}
       </button>
     </div>
