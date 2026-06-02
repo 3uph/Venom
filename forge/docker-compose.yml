@@ -1,0 +1,14 @@
+services:
+  forge:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - forge-data:/app/storage
+    environment:
+      - FORGE_SECRET_KEY=${FORGE_SECRET_KEY:-change-me}
+      - FORGE_ADMIN_USER=${FORGE_ADMIN_USER:-admin}
+      - FORGE_ADMIN_PASSWORD=${FORGE_ADMIN_PASSWORD:-admin}
+
+volumes:
+  forge-data:

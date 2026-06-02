@@ -1,5 +1,8 @@
+from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from api.db.engine import init_db
 from api.auth.routes import router as auth_router
 from api.projects.routes import router as projects_router
@@ -25,3 +28,13 @@ app.include_router(pipelines_router)
 @app.on_event("startup")
 def on_startup():
     init_db()
+
+
+static_dir = Path(__file__).parent.parent / "static"
+
+if static_dir.exists():
+    app.mount("/assets", StaticFiles(directory=static_dir / "assets"), name="assets")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        return FileResponse(static_dir / "index.html")
