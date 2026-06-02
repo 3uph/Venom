@@ -3,6 +3,7 @@ import { useAuth } from '../auth/AuthProvider';
 import ProjectListPage from '../projects/ProjectListPage';
 import ProjectDetailPage from '../projects/ProjectDetailPage';
 import ModuleRegistryPage from '../modules/ModuleRegistryPage';
+import PipelineEditorPage from '../pipelines/PipelineEditorPage';
 
 const navItems = [
   { path: '/projects', label: 'Projects' },
@@ -52,6 +53,7 @@ export default function AppLayout() {
           <Route path="/projects" element={<ProjectListPage />} />
           <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
           <Route path="/modules" element={<ModuleRegistryPage />} />
+          <Route path="/projects/:projectId/pipelines/:pipelineId" element={<PipelineEditorPage />} />
         </Routes>
       </main>
     </div>
