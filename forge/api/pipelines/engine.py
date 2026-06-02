@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from api.db.models import Pipeline, PipelineRun, RegisteredModule, ProjectFile
 from api.config import settings
-from api.pipelines.streaming import publish, close_run
+from api.pipelines.streaming import publish
 from api.pipelines.validator import validate_pipeline
 
 
@@ -56,7 +56,6 @@ async def execute_pipeline(pipeline_id: str, run_id: str, db_factory) -> None:
             run.finished_at = datetime.now(timezone.utc)
             db.commit()
             await publish(run_id, {"event": "run_finished", "status": "failed"})
-            close_run(run_id)
             return
 
         graph = pipeline.graph or {}
@@ -156,7 +155,6 @@ async def execute_pipeline(pipeline_id: str, run_id: str, db_factory) -> None:
             db.commit()
             await publish(run_id, {"event": "run_finished", "status": "failed"})
     finally:
-        close_run(run_id)
         db.close()
 
 
