@@ -21,7 +21,7 @@ module = ForgeModule(
         Param("input_file", type="file", required=True, description="File to echo back"),
         Param("output_name", type="string", required=True, description="Output filename"),
     ],
-    returns={"type": "file", "description": "The echoed file"},
+    returns={"type": "file", "name": "output", "produces": "binary", "description": "The echoed file"},
 )
 def echo_file(input_file: str, output_name: str) -> str:
     input_path = Path(input_file)
@@ -37,7 +37,7 @@ def echo_file(input_file: str, output_name: str) -> str:
         Param("input_file", type="file", required=True, description="File to modify"),
         Param("marker", type="string", required=False, description="Marker text to append"),
     ],
-    returns={"type": "file", "description": "Modified file"},
+    returns={"type": "file", "name": "output", "produces": "binary", "description": "Modified file"},
 )
 def append_bytes(input_file: str, marker: str = "FORGED") -> str:
     input_path = Path(input_file)
