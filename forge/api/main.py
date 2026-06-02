@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from api.db.engine import init_db
 from api.auth.routes import router as auth_router
 from api.projects.routes import router as projects_router
+from api.modules.routes import router as modules_router
 
 app = FastAPI(title="Forge API")
 
@@ -16,6 +17,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(projects_router)
+app.include_router(modules_router)
 
 
 @app.on_event("startup")
