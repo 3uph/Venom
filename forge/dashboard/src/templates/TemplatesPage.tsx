@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/client';
+import { t, space, radius, font } from '../theme/tokens';
 
 interface TemplateSummary {
   id: string;
@@ -29,76 +30,103 @@ export default function TemplatesPage() {
     load();
   };
 
-  const allTags = Array.from(new Set(templates.flatMap((t) => t.tags || [])));
+  const allTags = Array.from(new Set(templates.flatMap((tmp) => tmp.tags || [])));
 
   return (
-    <div>
-      <h2 style={{ marginBottom: '1rem' }}>Templates</h2>
-      <div style={{ marginBottom: '1rem', display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-        <span style={{ color: '#888', fontSize: '0.85rem' }}>Filter:</span>
-        <button
-          onClick={() => setTagFilter('')}
-          style={{
-            padding: '0.2rem 0.5rem',
-            background: tagFilter === '' ? '#ff4444' : 'transparent',
-            border: '1px solid #555',
-            borderRadius: '4px',
-            color: tagFilter === '' ? '#fff' : '#aaa',
-            cursor: 'pointer',
-            fontSize: '0.8rem',
-          }}
-        >
-          all
-        </button>
-        {allTags.map((t) => (
+    <div style={{ maxWidth: '900px' }}>
+      <h2 style={{ marginBottom: space.lg, fontWeight: 600, fontSize: font.xxl }}>Templates</h2>
+
+      {allTags.length > 0 && (
+        <div style={{ marginBottom: space.lg, display: 'flex', gap: space.xs, alignItems: 'center', flexWrap: 'wrap' }}>
+          <span style={{ color: t.textDim, fontSize: font.xs, textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: space.xs }}>
+            Filter
+          </span>
           <button
-            key={t}
-            onClick={() => setTagFilter(t)}
-            style={{
-              padding: '0.2rem 0.5rem',
-              background: tagFilter === t ? '#ff4444' : 'transparent',
-              border: '1px solid #555',
-              borderRadius: '4px',
-              color: tagFilter === t ? '#fff' : '#aaa',
-              cursor: 'pointer',
-              fontSize: '0.8rem',
-            }}
+            onClick={() => setTagFilter('')}
+            style={tagButton(tagFilter === '')}
           >
-            #{t}
+            all
           </button>
-        ))}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {templates.map((t) => (
-          <div key={t.id} style={{
-            padding: '0.75rem 1rem', background: '#1a1a1a', border: '1px solid #333',
-            borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          {allTags.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => setTagFilter(tag)}
+              style={tagButton(tagFilter === tag)}
+            >
+              #{tag}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: space.sm }}>
+        {templates.map((tmp) => (
+          <div key={tmp.id} style={{
+            padding: `${space.md} ${space.lg}`,
+            background: t.surface,
+            border: `1px solid ${t.border}`,
+            borderRadius: radius.lg,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
           }}>
-            <Link to={`/templates/${t.id}`} style={{ color: '#e0e0e0', textDecoration: 'none', flex: 1 }}>
-              <strong>{t.name}</strong>
-              <span style={{ color: '#666', marginLeft: '0.75rem', fontSize: '0.85rem' }}>{t.description}</span>
-              <span style={{ color: '#888', marginLeft: '0.75rem', fontSize: '0.75rem' }}>
-                {t.placeholders.length} placeholder{t.placeholders.length === 1 ? '' : 's'}
-              </span>
-              <div style={{ marginTop: '0.3rem' }}>
-                {(t.tags || []).map((tag) => (
+            <Link to={`/templates/${tmp.id}`} style={{ color: t.text, textDecoration: 'none', flex: 1 }}>
+              <div style={{ fontWeight: 600 }}>{tmp.name}</div>
+              {tmp.description && (
+                <div style={{ color: t.textDim, fontSize: font.sm, marginTop: '0.15rem' }}>
+                  {tmp.description}
+                </div>
+              )}
+              <div style={{ marginTop: '0.4rem', display: 'flex', gap: space.xs, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span style={{ color: t.textFaint, fontSize: font.xs }}>
+                  {tmp.placeholders.length} placeholder{tmp.placeholders.length === 1 ? '' : 's'}
+                </span>
+                {(tmp.tags || []).map((tag) => (
                   <span key={tag} style={{
-                    display: 'inline-block', marginRight: '0.3rem', padding: '0.1rem 0.4rem',
-                    background: '#2a2a2a', borderRadius: '3px', fontSize: '0.7rem', color: '#aaa',
+                    fontSize: font.xs,
+                    color: t.textDim,
+                    background: t.surface2,
+                    padding: '0.1rem 0.45rem',
+                    borderRadius: radius.sm,
                   }}>#{tag}</span>
                 ))}
               </div>
             </Link>
-            <button onClick={() => handleDelete(t.id)} style={{
-              padding: '0.3rem 0.6rem', background: 'transparent', border: '1px solid #ff4444',
-              borderRadius: '4px', color: '#ff4444', cursor: 'pointer', fontSize: '0.8rem',
-            }}>
+            <button onClick={() => handleDelete(tmp.id)} style={ghostButton(t.danger)}>
               Delete
             </button>
           </div>
         ))}
-        {templates.length === 0 && <div style={{ color: '#555' }}>No templates yet.</div>}
+        {templates.length === 0 && (
+          <div style={{ color: t.textFaint, fontSize: font.sm, padding: space.lg, textAlign: 'center' }}>
+            No templates yet. Save a pipeline as template from the editor.
+          </div>
+        )}
       </div>
     </div>
   );
+}
+
+function tagButton(active: boolean): React.CSSProperties {
+  return {
+    padding: '0.25rem 0.7rem',
+    background: active ? t.accent : 'transparent',
+    border: `1px solid ${active ? t.accent : t.border}`,
+    borderRadius: radius.sm,
+    color: active ? '#fff' : t.textDim,
+    cursor: 'pointer',
+    fontSize: font.xs,
+  };
+}
+
+function ghostButton(color: string): React.CSSProperties {
+  return {
+    padding: '0.3rem 0.7rem',
+    background: 'transparent',
+    border: `1px solid ${t.border}`,
+    borderRadius: radius.sm,
+    color,
+    cursor: 'pointer',
+    fontSize: font.xs,
+  };
 }

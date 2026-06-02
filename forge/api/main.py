@@ -23,7 +23,7 @@ async def lifespan(app: FastAPI):
         modules_poller.stop()
 
 
-app = FastAPI(title="Forge API", lifespan=lifespan)
+app = FastAPI(title="Venom API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

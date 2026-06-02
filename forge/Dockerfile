@@ -13,8 +13,8 @@ COPY api/ ./api/
 COPY --from=frontend-build /app/dashboard/dist ./static
 RUN mkdir -p /app/storage
 
-ENV FORGE_STORAGE_PATH=/app/storage
-ENV FORGE_DB_PATH=/app/storage/forge.db
+ENV VENOM_STORAGE_PATH=/app/storage
+ENV VENOM_DB_PATH=/app/storage/venom.db
 
 EXPOSE 8080
 

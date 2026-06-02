@@ -1,4 +1,5 @@
 import { Handle, Position, NodeProps } from '@xyflow/react';
+import { t, radius, font } from '../../theme/tokens';
 
 export interface ProjectFileNodeData {
   file_id: string;
@@ -8,27 +9,39 @@ export interface ProjectFileNodeData {
 
 export default function ProjectFileNode({ data, selected }: NodeProps) {
   const nodeData = data as unknown as ProjectFileNodeData;
-  const borderColor = selected ? '#44ddff' : '#266';
+  const borderColor = selected ? t.shellcode : t.border;
 
   return (
     <div style={{
       padding: '0.5rem 0.75rem',
-      background: '#0e2a30',
+      background: t.surface,
       border: `2px solid ${borderColor}`,
-      borderRadius: '8px',
+      borderRadius: radius.lg,
       minWidth: '180px',
+      transition: 'border-color 0.15s ease',
     }}>
-      <div style={{ fontSize: '0.7rem', color: '#5cc', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-        Project File
+      <div style={{
+        fontSize: font.xs,
+        color: t.shellcode,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+      }}>
+        Project file
       </div>
-      <div style={{ fontSize: '0.9rem', color: '#e0f7ff', fontWeight: 'bold', marginTop: '0.15rem', wordBreak: 'break-all' }}>
+      <div style={{
+        fontSize: font.md,
+        color: t.text,
+        fontWeight: 600,
+        marginTop: '0.15rem',
+        wordBreak: 'break-all',
+      }}>
         {nodeData.filename}
       </div>
       <Handle
         type="source"
         position={Position.Right}
         id="output"
-        style={{ background: '#44ddff', width: 10, height: 10 }}
+        style={{ background: t.shellcode, width: 10, height: 10 }}
       />
     </div>
   );

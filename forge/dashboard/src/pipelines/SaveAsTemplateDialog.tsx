@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import api from '../api/client';
+import { Modal, DialogActions } from '../templates/InstantiateTemplateDialog';
+import { t, space, radius, font } from '../theme/tokens';
 
 interface Props {
   pipelineId: string;
@@ -35,44 +37,49 @@ export default function SaveAsTemplateDialog({ pipelineId, onClose, onSaved }: P
   };
 
   const inputStyle = {
-    padding: '0.4rem', background: '#2a2a2a', border: '1px solid #333',
-    borderRadius: '4px', color: '#e0e0e0', width: '100%', fontSize: '0.85rem',
+    padding: '0.55rem 0.75rem',
+    background: t.surface2,
+    border: `1px solid ${t.border}`,
+    borderRadius: radius.md,
+    color: t.text,
+    width: '100%',
+    fontSize: font.sm,
+    outline: 'none',
+  };
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    color: t.textDim,
+    fontSize: font.xs,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    marginBottom: '0.3rem',
   };
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-      background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 1000,
-    }}>
-      <div style={{ background: '#1a1a1a', padding: '1.5rem', borderRadius: '8px', width: '420px' }}>
-        <h3 style={{ marginBottom: '1rem' }}>Save pipeline as template</h3>
-        {error && <div style={{ color: '#ff4444', marginBottom: '0.75rem', fontSize: '0.85rem' }}>{error}</div>}
-
-        <label style={{ color: '#888', fontSize: '0.8rem' }}>Name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} style={{ ...inputStyle, marginBottom: '0.75rem' }} />
-
-        <label style={{ color: '#888', fontSize: '0.8rem' }}>Description</label>
-        <input value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, marginBottom: '0.75rem' }} />
-
-        <label style={{ color: '#888', fontSize: '0.8rem' }}>Tags (comma-separated)</label>
-        <input value={tagsRaw} onChange={(e) => setTagsRaw(e.target.value)} placeholder="loader, evasion, syscall" style={{ ...inputStyle, marginBottom: '1rem' }} />
-
-        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} disabled={busy} style={{
-            padding: '0.4rem 0.9rem', background: '#333', border: '1px solid #555',
-            borderRadius: '4px', color: '#aaa', cursor: 'pointer',
-          }}>
-            Cancel
-          </button>
-          <button onClick={handleSubmit} disabled={busy} style={{
-            padding: '0.4rem 0.9rem', background: busy ? '#444' : '#ff4444',
-            border: 'none', borderRadius: '4px', color: '#fff', cursor: busy ? 'not-allowed' : 'pointer',
-          }}>
-            {busy ? 'Saving...' : 'Save template'}
-          </button>
+    <Modal onClose={onClose}>
+      <h3 style={{ marginBottom: space.md, fontWeight: 600 }}>Save pipeline as template</h3>
+      {error && (
+        <div style={{ color: t.danger, background: t.accentSoft, padding: '0.5rem 0.75rem', borderRadius: radius.sm, fontSize: font.sm, marginBottom: space.sm }}>
+          {error}
         </div>
-      </div>
-    </div>
+      )}
+
+      <label style={labelStyle}>Name</label>
+      <input value={name} onChange={(e) => setName(e.target.value)} style={{ ...inputStyle, marginBottom: space.md }} />
+
+      <label style={labelStyle}>Description</label>
+      <input value={description} onChange={(e) => setDescription(e.target.value)} style={{ ...inputStyle, marginBottom: space.md }} />
+
+      <label style={labelStyle}>Tags (comma-separated)</label>
+      <input value={tagsRaw} onChange={(e) => setTagsRaw(e.target.value)} placeholder="loader, evasion, syscall" style={inputStyle} />
+
+      <DialogActions
+        busy={busy}
+        confirmLabel={busy ? 'Saving…' : 'Save template'}
+        confirmDisabled={busy}
+        onCancel={onClose}
+        onConfirm={handleSubmit}
+      />
+    </Modal>
   );
 }

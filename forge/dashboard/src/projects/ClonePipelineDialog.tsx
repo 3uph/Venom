@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import api from '../api/client';
+import { Modal, DialogActions } from '../templates/InstantiateTemplateDialog';
+import { t, space, radius, font } from '../theme/tokens';
 
 interface Pipeline {
   id: string;
@@ -7,15 +9,8 @@ interface Pipeline {
   graph: { nodes: any[]; edges: any[] };
 }
 
-interface ProjectSummary {
-  id: string;
-  name: string;
-}
-
-interface ProjectFile {
-  id: string;
-  filename: string;
-}
+interface ProjectSummary { id: string; name: string }
+interface ProjectFile { id: string; filename: string }
 
 interface Props {
   pipelineId: string;
@@ -74,73 +69,73 @@ export default function ClonePipelineDialog({ pipelineId, currentProjectId, onCl
   const allMapped = sourceFileNodes.every((n: any) => !!mappings[n.data?.file_id]);
 
   const inputStyle = {
-    padding: '0.4rem', background: '#2a2a2a', border: '1px solid #333',
-    borderRadius: '4px', color: '#e0e0e0', width: '100%', fontSize: '0.85rem',
+    padding: '0.55rem 0.75rem',
+    background: t.surface2,
+    border: `1px solid ${t.border}`,
+    borderRadius: radius.md,
+    color: t.text,
+    width: '100%',
+    fontSize: font.sm,
+    outline: 'none',
+  };
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    color: t.textDim,
+    fontSize: font.xs,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    marginBottom: '0.3rem',
   };
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-      background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 1000,
-    }}>
-      <div style={{
-        background: '#1a1a1a', padding: '1.5rem', borderRadius: '8px',
-        width: '480px', maxHeight: '80vh', overflow: 'auto',
-      }}>
-        <h3 style={{ marginBottom: '1rem' }}>Clone pipeline to project</h3>
-        {error && <div style={{ color: '#ff4444', marginBottom: '0.75rem', fontSize: '0.85rem' }}>{error}</div>}
-
-        <label style={{ color: '#888', fontSize: '0.8rem' }}>Target project</label>
-        <select value={targetProjectId} onChange={(e) => setTargetProjectId(e.target.value)} style={{ ...inputStyle, marginBottom: '0.75rem' }}>
-          <option value="">Select project</option>
-          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
-
-        <label style={{ color: '#888', fontSize: '0.8rem' }}>New pipeline name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} style={{ ...inputStyle, marginBottom: '1rem' }} />
-
-        {sourceFileNodes.length > 0 && (
-          <>
-            <div style={{ color: '#888', fontSize: '0.8rem', marginBottom: '0.4rem' }}>Map source files → target files</div>
-            {sourceFileNodes.map((n: any) => (
-              <div key={n.id} style={{ marginBottom: '0.5rem' }}>
-                <div style={{ fontSize: '0.8rem', color: '#aaa' }}>{n.data.filename}</div>
-                <select
-                  value={mappings[n.data.file_id] || ''}
-                  onChange={(e) => setMappings({ ...mappings, [n.data.file_id]: e.target.value })}
-                  style={inputStyle}
-                  disabled={!targetProjectId}
-                >
-                  <option value="">Select target file</option>
-                  {targetFiles.map((f) => <option key={f.id} value={f.id}>{f.filename}</option>)}
-                </select>
-              </div>
-            ))}
-          </>
-        )}
-
-        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem', justifyContent: 'flex-end' }}>
-          <button onClick={onClose} disabled={busy} style={{
-            padding: '0.4rem 0.9rem', background: '#333', border: '1px solid #555',
-            borderRadius: '4px', color: '#aaa', cursor: 'pointer',
-          }}>
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={!targetProjectId || !allMapped || busy}
-            style={{
-              padding: '0.4rem 0.9rem',
-              background: !targetProjectId || !allMapped || busy ? '#444' : '#ff4444',
-              border: 'none', borderRadius: '4px', color: '#fff',
-              cursor: !targetProjectId || !allMapped || busy ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {busy ? 'Cloning...' : 'Clone'}
-          </button>
+    <Modal onClose={onClose}>
+      <h3 style={{ marginBottom: space.md, fontWeight: 600 }}>Clone pipeline to project</h3>
+      {error && (
+        <div style={{ color: t.danger, background: t.accentSoft, padding: '0.5rem 0.75rem', borderRadius: radius.sm, fontSize: font.sm, marginBottom: space.sm }}>
+          {error}
         </div>
-      </div>
-    </div>
+      )}
+
+      <label style={labelStyle}>Target project</label>
+      <select value={targetProjectId} onChange={(e) => setTargetProjectId(e.target.value)} style={{ ...inputStyle, marginBottom: space.md }}>
+        <option value="">Select project</option>
+        {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+      </select>
+
+      <label style={labelStyle}>New pipeline name</label>
+      <input value={name} onChange={(e) => setName(e.target.value)} style={{ ...inputStyle, marginBottom: space.lg }} />
+
+      {sourceFileNodes.length > 0 && (
+        <>
+          <div style={{ color: t.textDim, fontSize: font.xs, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: space.sm }}>
+            Map source files → target files
+          </div>
+          {sourceFileNodes.map((n: any) => (
+            <div key={n.id} style={{ marginBottom: space.sm }}>
+              <div style={{ fontSize: font.sm, color: t.text, marginBottom: '0.2rem' }}>
+                {n.data.filename}
+              </div>
+              <select
+                value={mappings[n.data.file_id] || ''}
+                onChange={(e) => setMappings({ ...mappings, [n.data.file_id]: e.target.value })}
+                style={inputStyle}
+                disabled={!targetProjectId}
+              >
+                <option value="">Select target file</option>
+                {targetFiles.map((f) => <option key={f.id} value={f.id}>{f.filename}</option>)}
+              </select>
+            </div>
+          ))}
+        </>
+      )}
+
+      <DialogActions
+        busy={busy}
+        confirmLabel={busy ? 'Cloning…' : 'Clone'}
+        confirmDisabled={!targetProjectId || !allMapped || busy}
+        onCancel={onClose}
+        onConfirm={handleSubmit}
+      />
+    </Modal>
   );
 }

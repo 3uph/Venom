@@ -4,10 +4,10 @@ import tempfile
 from pathlib import Path
 from functools import wraps
 from flask import Flask, jsonify, request, send_file
-from forge_module_sdk.param import Param
+from venom_module_sdk.param import Param
 
 
-class ForgeModule:
+class VenomModule:
     def __init__(
         self,
         name: str,

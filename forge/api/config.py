@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     storage_path: str = "./storage"
     token_expire_minutes: int = 480
 
-    model_config = {"env_prefix": "FORGE_"}
+    model_config = {"env_prefix": "VENOM_"}
 
 
 settings = Settings()

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(git --version)",
+      "Bash(python3 -c \"import sys; print\\(sys.prefix\\)\")",
+      "Read(//usr/lib/**)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}

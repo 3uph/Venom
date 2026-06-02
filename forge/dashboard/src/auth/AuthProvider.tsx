@@ -15,16 +15,16 @@ export function useAuth() {
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem('forge_token')
+    localStorage.getItem('venom_token')
   );
 
   const login = (newToken: string) => {
-    localStorage.setItem('forge_token', newToken);
+    localStorage.setItem('venom_token', newToken);
     setToken(newToken);
   };
 
   const logout = () => {
-    localStorage.removeItem('forge_token');
+    localStorage.removeItem('venom_token');
     setToken(null);
   };
 

@@ -4,9 +4,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent / "module-sdk"))
 
-from forge_module_sdk import ForgeModule, Param
 
-module = ForgeModule(
+from venom_module_sdk import VenomModule, Param
+
+module = VenomModule(
     name="echo-module",
     version="1.0",
     platform="linux",
@@ -40,7 +41,7 @@ def echo_file(input_file: str, output_name: str) -> str:
     ],
     returns={"type": "file", "name": "output", "produces": "binary", "description": "Modified file"},
 )
-def append_bytes(input_file: str, marker: str = "FORGED") -> str:
+def append_bytes(input_file: str, marker: str = "VENOM") -> str:
     input_path = Path(input_file)
     output_path = input_path.parent / f"marked_{input_path.name}"
     with open(input_path, "rb") as src, open(output_path, "wb") as dst:

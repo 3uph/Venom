@@ -2,6 +2,8 @@ import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthProvider';
 import api from '../api/client';
+import { t, space, radius, font } from '../theme/tokens';
+import ThemeToggle from '../theme/ThemeToggle';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -22,40 +24,95 @@ export default function LoginPage() {
     }
   };
 
+  const inputStyle = {
+    padding: '0.65rem 0.85rem',
+    background: t.surface2,
+    border: `1px solid ${t.border}`,
+    borderRadius: radius.md,
+    color: t.text,
+    fontSize: font.md,
+    outline: 'none',
+    transition: 'border-color 0.15s ease',
+  };
+
   return (
     <div style={{
       display: 'flex', justifyContent: 'center', alignItems: 'center',
-      height: '100vh', background: '#0f0f0f',
+      height: '100vh', background: t.bg, position: 'relative',
     }}>
-      <form onSubmit={handleSubmit} style={{
-        background: '#1a1a1a', padding: '2rem', borderRadius: '8px',
-        width: '320px', display: 'flex', flexDirection: 'column', gap: '1rem',
-      }}>
-        <h1 style={{ color: '#ff4444', textAlign: 'center', fontSize: '1.5rem' }}>
-          FORGE
-        </h1>
-        {error && <div style={{ color: '#ff4444', fontSize: '0.9rem' }}>{error}</div>}
+      <div style={{ position: 'absolute', top: space.lg, right: space.lg }}>
+        <ThemeToggle />
+      </div>
+      <form
+        onSubmit={handleSubmit}
+        style={{
+          background: t.surface,
+          padding: '2.5rem',
+          borderRadius: radius.lg,
+          border: `1px solid ${t.border}`,
+          width: '360px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: space.md,
+        }}
+      >
+        <div style={{ textAlign: 'center', marginBottom: space.md }}>
+          <div style={{
+            color: t.accent,
+            fontSize: '1.75rem',
+            fontWeight: 700,
+            letterSpacing: '0.05em',
+          }}>
+            VENOM
+          </div>
+          <div style={{ color: t.textDim, fontSize: font.sm, marginTop: '0.25rem' }}>
+            Red team artifact builder
+          </div>
+        </div>
+
+        {error && (
+          <div style={{
+            color: t.danger,
+            background: t.accentSoft,
+            padding: '0.55rem 0.75rem',
+            borderRadius: radius.sm,
+            fontSize: font.sm,
+          }}>
+            {error}
+          </div>
+        )}
+
         <input
-          type="text" placeholder="Username" value={username}
+          type="text"
+          placeholder="Username"
+          value={username}
           onChange={(e) => setUsername(e.target.value)}
-          style={{
-            padding: '0.6rem', background: '#2a2a2a', border: '1px solid #333',
-            borderRadius: '4px', color: '#e0e0e0', fontSize: '1rem',
-          }}
+          style={inputStyle}
         />
         <input
-          type="password" placeholder="Password" value={password}
+          type="password"
+          placeholder="Password"
+          value={password}
           onChange={(e) => setPassword(e.target.value)}
-          style={{
-            padding: '0.6rem', background: '#2a2a2a', border: '1px solid #333',
-            borderRadius: '4px', color: '#e0e0e0', fontSize: '1rem',
-          }}
+          style={inputStyle}
         />
-        <button type="submit" style={{
-          padding: '0.6rem', background: '#ff4444', border: 'none',
-          borderRadius: '4px', color: '#fff', fontSize: '1rem', cursor: 'pointer',
-        }}>
-          Login
+        <button
+          type="submit"
+          style={{
+            padding: '0.7rem',
+            background: t.accent,
+            border: 'none',
+            borderRadius: radius.md,
+            color: '#fff',
+            fontSize: font.md,
+            fontWeight: 500,
+            cursor: 'pointer',
+            transition: 'background 0.15s ease',
+          }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = t.accentHover; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = t.accent; }}
+        >
+          Sign in
         </button>
       </form>
     </div>

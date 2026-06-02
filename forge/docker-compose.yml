@@ -1,14 +1,14 @@
 services:
-  forge:
+  venom:
     build: .
     ports:
       - "8080:8080"
     volumes:
-      - forge-data:/app/storage
+      - venom-data:/app/storage
     environment:
-      - FORGE_SECRET_KEY=${FORGE_SECRET_KEY:-change-me}
-      - FORGE_ADMIN_USER=${FORGE_ADMIN_USER:-admin}
-      - FORGE_ADMIN_PASSWORD=${FORGE_ADMIN_PASSWORD:-admin}
+      - VENOM_SECRET_KEY=${VENOM_SECRET_KEY:-change-me}
+      - VENOM_ADMIN_USER=${VENOM_ADMIN_USER:-admin}
+      - VENOM_ADMIN_PASSWORD=${VENOM_ADMIN_PASSWORD:-admin}
 
 volumes:
-  forge-data:
+  venom-data:

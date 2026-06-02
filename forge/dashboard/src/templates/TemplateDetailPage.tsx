@@ -8,6 +8,7 @@ import ModuleNode from '../pipelines/nodes/ModuleNode';
 import ProjectFileNode from '../pipelines/nodes/ProjectFileNode';
 import PlaceholderNode from './PlaceholderNode';
 import InstantiateTemplateDialog from './InstantiateTemplateDialog';
+import { t, space, radius, font } from '../theme/tokens';
 
 interface Placeholder { id: string; label: string; hint: string }
 interface Template {
@@ -36,21 +37,34 @@ export default function TemplateDetailPage() {
     api.get(`/templates/${templateId}`).then((r) => setTemplate(r.data));
   }, [templateId]);
 
-  if (!template) return <div>Loading...</div>;
+  if (!template) return <div style={{ padding: '1.5rem', color: t.textDim }}>Loading…</div>;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid #333', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: t.bg }}>
+      <div style={{
+        padding: `${space.md} ${space.lg}`,
+        borderBottom: `1px solid ${t.border}`,
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+        background: t.surface,
+      }}>
         <div>
-          <Link to="/templates" style={{ color: '#888', textDecoration: 'none', fontSize: '0.85rem' }}>
-            &larr; Templates
+          <Link to="/templates" style={{ color: t.textDim, textDecoration: 'none', fontSize: font.sm }}>
+            ← Templates
           </Link>
-          <span style={{ color: '#e0e0e0', marginLeft: '0.75rem', fontSize: '1.05rem' }}>{template.name}</span>
-          <span style={{ color: '#888', marginLeft: '0.75rem', fontSize: '0.85rem' }}>{template.description}</span>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: space.md, marginTop: '0.25rem' }}>
+            <span style={{ color: t.text, fontSize: font.lg, fontWeight: 600 }}>{template.name}</span>
+            <span style={{ color: t.textDim, fontSize: font.sm }}>{template.description}</span>
+          </div>
         </div>
         <button onClick={() => setShowDialog(true)} style={{
-          padding: '0.4rem 0.9rem', background: '#ff4444', border: 'none',
-          borderRadius: '4px', color: '#fff', cursor: 'pointer',
+          padding: '0.5rem 1rem',
+          background: t.accent,
+          border: 'none',
+          borderRadius: radius.md,
+          color: '#fff',
+          cursor: 'pointer',
+          fontSize: font.sm,
+          fontWeight: 500,
         }}>
           Use in project
         </button>
@@ -65,9 +79,9 @@ export default function TemplateDetailPage() {
             nodesConnectable={false}
             elementsSelectable={false}
             fitView
-            style={{ background: '#0f0f0f' }}
+            style={{ background: t.bg }}
           >
-            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#222" />
+            <Background variant={BackgroundVariant.Dots} gap={22} size={1} color={t.border} />
           </ReactFlow>
         </ReactFlowProvider>
       </div>

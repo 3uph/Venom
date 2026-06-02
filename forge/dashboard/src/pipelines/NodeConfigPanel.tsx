@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api/client';
+import { t, space, radius, font } from '../theme/tokens';
 
 interface ManifestParam {
   name: string;
@@ -49,25 +50,49 @@ export default function NodeConfigPanel({ nodeData, projectId, onUpdate, onClose
   };
 
   const inputStyle = {
-    padding: '0.4rem', background: '#2a2a2a', border: '1px solid #333',
-    borderRadius: '4px', color: '#e0e0e0', fontSize: '0.85rem', width: '100%',
+    padding: '0.45rem 0.65rem',
+    background: t.surface2,
+    border: `1px solid ${t.border}`,
+    borderRadius: radius.md,
+    color: t.text,
+    fontSize: font.sm,
+    width: '100%',
+    outline: 'none',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    color: t.textDim,
+    fontSize: font.xs,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    marginBottom: '0.25rem',
   };
 
   return (
     <div style={{
-      width: '300px', background: '#1a1a1a', borderLeft: '1px solid #333',
-      padding: '1rem', overflow: 'auto', height: '100%',
+      width: '320px',
+      background: t.surface,
+      borderLeft: `1px solid ${t.border}`,
+      padding: space.lg,
+      overflow: 'auto',
+      height: '100%',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
-        <h3 style={{ fontSize: '1rem' }}>Node Config</h3>
-        <button onClick={onClose} style={{ background: 'none', border: 'none', color: '#888', cursor: 'pointer' }}>X</button>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: space.md, alignItems: 'center' }}>
+        <h3 style={{ fontSize: font.md, fontWeight: 600 }}>Node config</h3>
+        <button onClick={onClose} style={{
+          background: 'none', border: 'none', color: t.textDim, cursor: 'pointer',
+          fontSize: font.md, padding: '0 0.4rem',
+        }}>
+          ×
+        </button>
       </div>
 
-      <label style={{ color: '#888', fontSize: '0.8rem' }}>Module</label>
+      <label style={labelStyle}>Module</label>
       <select
         value={nodeData.module_id || ''}
         onChange={(e) => handleChange('module_id', e.target.value)}
-        style={{ ...inputStyle, marginBottom: '0.75rem' }}
+        style={{ ...inputStyle, marginBottom: space.md }}
       >
         <option value="">Select module</option>
         {modules.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
@@ -75,7 +100,7 @@ export default function NodeConfigPanel({ nodeData, projectId, onUpdate, onClose
 
       {selectedModule && (
         <>
-          <label style={{ color: '#888', fontSize: '0.8rem' }}>Function</label>
+          <label style={labelStyle}>Function</label>
           <select
             value={nodeData.function || ''}
             onChange={(e) => {
@@ -87,7 +112,7 @@ export default function NodeConfigPanel({ nodeData, projectId, onUpdate, onClose
               if (fn) next.params = {};
               onUpdate(next);
             }}
-            style={{ ...inputStyle, marginBottom: '0.75rem' }}
+            style={{ ...inputStyle, marginBottom: space.md }}
           >
             <option value="">Select function</option>
             {functions.map((f) => <option key={f.name} value={f.name}>{f.name}</option>)}
@@ -99,15 +124,15 @@ export default function NodeConfigPanel({ nodeData, projectId, onUpdate, onClose
         const nonFileParams = selectedFn.params.filter((p) => p.type !== 'file');
         if (nonFileParams.length === 0) {
           return (
-            <div style={{ color: '#666', fontSize: '0.75rem' }}>
-              This function has no inline parameters. File inputs are wired in the canvas.
+            <div style={{ color: t.textFaint, fontSize: font.xs }}>
+              No inline parameters. File inputs are wired in the canvas.
             </div>
           );
         }
         return nonFileParams.map((p) => (
-          <div key={p.name} style={{ marginBottom: '0.5rem' }}>
-            <label style={{ color: '#888', fontSize: '0.8rem' }}>
-              {p.name} ({p.type}){p.required && ' *'}
+          <div key={p.name} style={{ marginBottom: space.sm }}>
+            <label style={labelStyle}>
+              {p.name} <span style={{ color: t.textFaint }}>({p.type}{p.required ? '*' : ''})</span>
             </label>
             {p.type === 'enum' && p.options ? (
               <select
@@ -115,7 +140,7 @@ export default function NodeConfigPanel({ nodeData, projectId, onUpdate, onClose
                 onChange={(e) => handleParamChange(p.name, e.target.value)}
                 style={inputStyle}
               >
-                <option value="">Select...</option>
+                <option value="">Select…</option>
                 {p.options.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
             ) : (
@@ -134,12 +159,12 @@ export default function NodeConfigPanel({ nodeData, projectId, onUpdate, onClose
         const fileParams = selectedFn.params.filter((p) => p.type === 'file');
         if (fileParams.length === 0) return null;
         return (
-          <div style={{ marginTop: '1rem', paddingTop: '0.75rem', borderTop: '1px solid #333' }}>
-            <div style={{ color: '#666', fontSize: '0.75rem', marginBottom: '0.3rem' }}>
-              File inputs (wire from canvas):
+          <div style={{ marginTop: space.md, paddingTop: space.md, borderTop: `1px solid ${t.border}` }}>
+            <div style={{ color: t.textDim, fontSize: font.xs, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.3rem' }}>
+              File inputs (wire from canvas)
             </div>
             {fileParams.map((p) => (
-              <div key={p.name} style={{ color: '#888', fontSize: '0.8rem' }}>
+              <div key={p.name} style={{ color: t.textDim, fontSize: font.sm }}>
                 ◀ {p.name}{p.required ? '*' : ''}
               </div>
             ))}

@@ -47,7 +47,7 @@ export default function usePipelineExecution() {
       const runId = res.data.id as string;
       setState((s) => ({ ...s, runId }));
 
-      const token = localStorage.getItem('forge_token') || '';
+      const token = localStorage.getItem('venom_token') || '';
       const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
       const wsUrl = `${proto}://${window.location.host}/api/pipelines/${pipelineId}/runs/${runId}/stream?token=${encodeURIComponent(token)}`;
       const ws = new WebSocket(wsUrl);

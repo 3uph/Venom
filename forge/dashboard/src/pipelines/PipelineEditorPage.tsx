@@ -29,6 +29,7 @@ import SaveAsTemplateDialog from './SaveAsTemplateDialog';
 import usePipelineValidation from './usePipelineValidation';
 import usePipelineExecution from './usePipelineExecution';
 import { autoLayout } from './autoLayout';
+import { t, space, font } from '../theme/tokens';
 
 const nodeTypes: NodeTypes = {
   moduleNode: ModuleNode,
@@ -187,7 +188,7 @@ function PipelineEditorInner() {
 
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const raw = e.dataTransfer.getData('application/forge-file');
+    const raw = e.dataTransfer.getData('application/venom-file');
     if (!raw) return;
     let payload: { file_id: string; filename: string };
     try {
@@ -223,12 +224,19 @@ function PipelineEditorInner() {
   const selected = nodes.find((n) => n.id === selectedNode);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ padding: '0.5rem 1rem', borderBottom: '1px solid #333' }}>
-        <span style={{ color: '#888', fontSize: '0.85rem' }}>Pipeline: </span>
-        <span style={{ color: '#e0e0e0' }}>{pipelineName}</span>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: t.bg }}>
+      <div style={{
+        padding: `${space.sm} ${space.lg}`,
+        borderBottom: `1px solid ${t.border}`,
+        background: t.surface,
+        display: 'flex', alignItems: 'center', gap: space.md,
+      }}>
+        <span style={{ color: t.textDim, fontSize: font.xs, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Pipeline
+        </span>
+        <span style={{ color: t.text, fontWeight: 600 }}>{pipelineName}</span>
         {execution.lastError && (
-          <span style={{ color: '#ff8866', marginLeft: '1rem', fontSize: '0.8rem' }}>
+          <span style={{ color: t.danger, fontSize: font.xs }}>
             {execution.lastError}
           </span>
         )}
@@ -257,24 +265,24 @@ function PipelineEditorInner() {
             onNodeClick={handleNodeClick}
             nodeTypes={nodeTypes}
             fitView
-            style={{ background: '#0f0f0f' }}
+            style={{ background: t.bg }}
           >
-            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#222" />
+            <Background variant={BackgroundVariant.Dots} gap={22} size={1} color={t.border} />
             <Controls />
             <MiniMap
               nodeColor={(n) => {
-                if (n.type === 'projectFileNode') return '#266';
+                if (n.type === 'projectFileNode') return t.shellcode;
                 if (n.type === 'moduleNode') {
                   const d = n.data as any;
-                  if (d?.has_validation_error) return '#ff4444';
-                  if (d?.status === 'completed') return '#44ff44';
-                  if (d?.status === 'running') return '#ffaa00';
-                  return '#555';
+                  if (d?.has_validation_error) return t.danger;
+                  if (d?.status === 'completed') return t.success;
+                  if (d?.status === 'running') return t.warning;
+                  return t.textFaint;
                 }
-                return '#444';
+                if (n.type === 'placeholderNode') return t.placeholder;
+                return t.textFaint;
               }}
-              maskColor="rgba(0,0,0,0.6)"
-              style={{ background: '#1a1a1a' }}
+              maskColor="rgba(0,0,0,0.45)"
             />
           </ReactFlow>
         </div>

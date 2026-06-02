@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/client';
 import FileUpload from './FileUpload';
 import ClonePipelineDialog from './ClonePipelineDialog';
+import { t, space, radius, font } from '../theme/tokens';
 
 interface ProjectFile {
   id: string;
@@ -100,128 +101,179 @@ export default function ProjectDetailPage() {
     load();
   };
 
-  if (!project) return <div>Loading...</div>;
+  if (!project) return <div style={{ color: t.textDim }}>Loading…</div>;
+
+  const inputStyle = {
+    padding: '0.5rem 0.75rem',
+    background: t.surface2,
+    border: `1px solid ${t.border}`,
+    borderRadius: radius.md,
+    color: t.text,
+    fontSize: font.sm,
+    outline: 'none',
+  };
 
   return (
-    <div>
-      <Link to="/projects" style={{ color: '#888', textDecoration: 'none', fontSize: '0.9rem' }}>
-        &larr; Back to Projects
+    <div style={{ maxWidth: '960px' }}>
+      <Link to="/projects" style={{ color: t.textDim, textDecoration: 'none', fontSize: font.sm }}>
+        ← Back to Projects
       </Link>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0.5rem 0' }}>
-        <h2>
-          {project.name}
-          {project.archived && <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', color: '#cc8844' }}>[archived]</span>}
-        </h2>
-        <button onClick={handleArchive} style={{
-          padding: '0.3rem 0.7rem',
-          background: 'transparent',
-          border: `1px solid ${project.archived ? '#44dd44' : '#cc8844'}`,
-          borderRadius: '4px',
-          color: project.archived ? '#88ff88' : '#cc8844',
-          cursor: 'pointer',
-          fontSize: '0.8rem',
-        }}>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', margin: '0.5rem 0 0.25rem 0' }}>
+        <div>
+          <h2 style={{ fontWeight: 600, fontSize: font.xxl }}>
+            {project.name}
+            {project.archived && (
+              <span style={{ marginLeft: space.sm, fontSize: font.xs, color: t.placeholder, fontWeight: 400, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                archived
+              </span>
+            )}
+          </h2>
+          {project.description && (
+            <div style={{ color: t.textDim, fontSize: font.sm, marginTop: '0.25rem' }}>
+              {project.description}
+            </div>
+          )}
+        </div>
+        <button
+          onClick={handleArchive}
+          style={{
+            padding: '0.4rem 0.85rem',
+            background: 'transparent',
+            border: `1px solid ${t.border}`,
+            borderRadius: radius.md,
+            color: project.archived ? t.success : t.warning,
+            cursor: 'pointer',
+            fontSize: font.sm,
+          }}
+        >
           {project.archived ? 'Restore' : 'Archive'}
         </button>
       </div>
-      <p style={{ color: '#888', marginBottom: '1rem' }}>{project.description}</p>
 
-      <h3 style={{ marginBottom: '0.4rem', fontSize: '0.95rem' }}>Notes</h3>
-      <textarea
-        value={notesDraft}
-        onChange={(e) => setNotesDraft(e.target.value)}
-        onBlur={handleSaveNotes}
-        placeholder="Operator notes (TTPs, targets, observations)..."
-        style={{
-          width: '100%', minHeight: '80px',
-          padding: '0.5rem', background: '#1a1a1a', border: '1px solid #333',
-          borderRadius: '4px', color: '#e0e0e0', fontSize: '0.85rem', fontFamily: 'monospace',
-          resize: 'vertical', marginBottom: '1.25rem',
-        }}
-      />
+      <Section title="Notes">
+        <textarea
+          value={notesDraft}
+          onChange={(e) => setNotesDraft(e.target.value)}
+          onBlur={handleSaveNotes}
+          placeholder="Operator notes (TTPs, targets, observations)…"
+          style={{
+            width: '100%',
+            minHeight: '90px',
+            padding: '0.65rem 0.85rem',
+            background: t.surface,
+            border: `1px solid ${t.border}`,
+            borderRadius: radius.md,
+            color: t.text,
+            fontSize: font.sm,
+            fontFamily: 'inherit',
+            resize: 'vertical',
+            outline: 'none',
+          }}
+        />
+      </Section>
 
-      <h3 style={{ marginBottom: '0.5rem' }}>Files</h3>
-      <FileUpload projectId={project.id} onUploaded={load} />
-      <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-        {project.files.map((f) => (
-          <div key={f.id} style={{
-            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-            padding: '0.5rem 0.75rem', background: '#1a1a1a', borderRadius: '4px',
-          }}>
-            <span style={{ flex: 1, minWidth: 0 }}>
-              <span style={{ color: f.file_type === 'output' ? '#44ff44' : '#e0e0e0' }}>{f.filename}</span>
-              <span style={{ color: '#555', marginLeft: '0.5rem', fontSize: '0.75rem' }}>[{f.file_type}]</span>
-              {f.sha256 && (
-                <span style={{ color: '#666', marginLeft: '0.5rem', fontSize: '0.7rem', fontFamily: 'monospace' }}>
-                  {f.sha256.slice(0, 10)}…
+      <Section title="Files">
+        <FileUpload projectId={project.id} onUploaded={load} />
+        <div style={{ marginTop: space.md, display: 'flex', flexDirection: 'column', gap: space.xs }}>
+          {project.files.map((f) => (
+            <div key={f.id} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              padding: '0.6rem 0.85rem',
+              background: t.surface,
+              border: `1px solid ${t.border}`,
+              borderRadius: radius.md,
+            }}>
+              <div style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: space.sm, flexWrap: 'wrap' }}>
+                <span style={{
+                  color: f.file_type === 'output' ? t.output : t.text,
+                  fontSize: font.sm,
+                  fontWeight: 500,
+                }}>
+                  {f.filename}
                 </span>
-              )}
-              {f.size_bytes > 0 && (
-                <span style={{ color: '#666', marginLeft: '0.5rem', fontSize: '0.7rem' }}>
-                  {humanSize(f.size_bytes)}
+                <span style={{ color: t.textFaint, fontSize: font.xs, textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                  {f.file_type}
                 </span>
-              )}
-            </span>
-            <div style={{ display: 'flex', gap: '0.3rem' }}>
-              <button onClick={() => handleDownloadFile(f.id, f.filename)}
-                style={{ padding: '0.2rem 0.5rem', background: '#333', border: 'none', borderRadius: '3px', color: '#aaa', cursor: 'pointer', fontSize: '0.8rem' }}>
-                Download
+                {f.sha256 && (
+                  <span style={{ color: t.textDim, fontSize: font.xs, fontFamily: 'ui-monospace, monospace' }}>
+                    {f.sha256.slice(0, 12)}…
+                  </span>
+                )}
+                {f.size_bytes > 0 && (
+                  <span style={{ color: t.textDim, fontSize: font.xs }}>
+                    {humanSize(f.size_bytes)}
+                  </span>
+                )}
+              </div>
+              <div style={{ display: 'flex', gap: space.xs }}>
+                <button onClick={() => handleDownloadFile(f.id, f.filename)} style={ghostButton(t.info)}>
+                  Download
+                </button>
+                <button onClick={() => handleDeleteFile(f.id)} style={ghostButton(t.danger)}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+          {project.files.length === 0 && (
+            <div style={{ color: t.textFaint, fontSize: font.sm, padding: space.md }}>No files uploaded.</div>
+          )}
+        </div>
+      </Section>
+
+      <Section title="Pipelines">
+        <div style={{ display: 'flex', gap: space.sm, marginBottom: space.md }}>
+          <input
+            placeholder="Pipeline name"
+            value={newPipelineName}
+            onChange={(e) => setNewPipelineName(e.target.value)}
+            style={inputStyle}
+          />
+          <button
+            onClick={handleCreatePipeline}
+            style={{
+              padding: '0.5rem 1rem',
+              background: t.accent,
+              border: 'none',
+              borderRadius: radius.md,
+              color: '#fff',
+              cursor: 'pointer',
+              fontSize: font.sm,
+              fontWeight: 500,
+            }}
+          >
+            New pipeline
+          </button>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: space.xs }}>
+          {pipelines.map((p) => (
+            <div key={p.id} style={{
+              display: 'flex', alignItems: 'center', gap: space.sm,
+              padding: '0.55rem 0.85rem',
+              background: t.surface,
+              border: `1px solid ${t.border}`,
+              borderRadius: radius.md,
+            }}>
+              <Link to={`/projects/${projectId}/pipelines/${p.id}`} style={{ color: t.text, textDecoration: 'none', flex: 1, fontSize: font.sm, fontWeight: 500 }}>
+                {p.name}
+              </Link>
+              <button onClick={() => handleDuplicatePipeline(p.id)} style={ghostButton(t.textDim)}>
+                Duplicate
               </button>
-              <button onClick={() => handleDeleteFile(f.id)}
-                style={{ padding: '0.2rem 0.5rem', background: 'transparent', border: '1px solid #ff4444', borderRadius: '3px', color: '#ff4444', cursor: 'pointer', fontSize: '0.8rem' }}>
+              <button onClick={() => setCloneTarget(p.id)} style={ghostButton(t.info)}>
+                Clone to project
+              </button>
+              <button onClick={() => handleDeletePipeline(p.id)} style={ghostButton(t.danger)}>
                 Delete
               </button>
             </div>
-          </div>
-        ))}
-      </div>
-
-      <h3 style={{ margin: '1.5rem 0 0.5rem' }}>Pipelines</h3>
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
-        <input
-          placeholder="Pipeline name" value={newPipelineName}
-          onChange={(e) => setNewPipelineName(e.target.value)}
-          style={{ padding: '0.4rem', background: '#2a2a2a', border: '1px solid #333', borderRadius: '4px', color: '#e0e0e0' }}
-        />
-        <button onClick={handleCreatePipeline} style={{
-          padding: '0.4rem 0.8rem', background: '#ff4444', border: 'none',
-          borderRadius: '4px', color: '#fff', cursor: 'pointer',
-        }}>
-          New Pipeline
-        </button>
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-        {pipelines.map((p) => (
-          <div key={p.id} style={{
-            display: 'flex', alignItems: 'center', gap: '0.5rem',
-            padding: '0.5rem 0.75rem', background: '#1a1a1a', borderRadius: '4px',
-          }}>
-            <Link to={`/projects/${projectId}/pipelines/${p.id}`}
-              style={{ color: '#e0e0e0', textDecoration: 'none', flex: 1 }}>
-              {p.name}
-            </Link>
-            <button onClick={() => handleDuplicatePipeline(p.id)} style={{
-              padding: '0.2rem 0.5rem', background: '#222', border: '1px solid #444',
-              borderRadius: '3px', color: '#aaa', cursor: 'pointer', fontSize: '0.75rem',
-            }}>
-              Duplicate
-            </button>
-            <button onClick={() => setCloneTarget(p.id)} style={{
-              padding: '0.2rem 0.5rem', background: '#222', border: '1px solid #557',
-              borderRadius: '3px', color: '#bcd', cursor: 'pointer', fontSize: '0.75rem',
-            }}>
-              Clone to project
-            </button>
-            <button onClick={() => handleDeletePipeline(p.id)} style={{
-              padding: '0.2rem 0.5rem', background: 'transparent', border: '1px solid #ff4444',
-              borderRadius: '3px', color: '#ff4444', cursor: 'pointer', fontSize: '0.75rem',
-            }}>
-              Delete
-            </button>
-          </div>
-        ))}
-        {pipelines.length === 0 && <div style={{ color: '#555' }}>No pipelines yet.</div>}
-      </div>
+          ))}
+          {pipelines.length === 0 && (
+            <div style={{ color: t.textFaint, fontSize: font.sm, padding: space.md }}>No pipelines yet.</div>
+          )}
+        </div>
+      </Section>
 
       {cloneTarget && projectId && (
         <ClonePipelineDialog
@@ -236,4 +288,34 @@ export default function ProjectDetailPage() {
       )}
     </div>
   );
+}
+
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div style={{ marginTop: space.xl }}>
+      <h3 style={{
+        fontSize: font.sm,
+        color: t.textDim,
+        fontWeight: 500,
+        textTransform: 'uppercase',
+        letterSpacing: '0.06em',
+        marginBottom: space.sm,
+      }}>
+        {title}
+      </h3>
+      {children}
+    </div>
+  );
+}
+
+function ghostButton(color: string): React.CSSProperties {
+  return {
+    padding: '0.3rem 0.7rem',
+    background: 'transparent',
+    border: `1px solid ${t.border}`,
+    borderRadius: radius.sm,
+    color,
+    cursor: 'pointer',
+    fontSize: font.xs,
+  };
 }

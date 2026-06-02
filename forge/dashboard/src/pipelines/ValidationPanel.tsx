@@ -1,4 +1,5 @@
 import type { ValidationError } from './usePipelineValidation';
+import { t, space, radius, font } from '../theme/tokens';
 
 interface Props {
   errors: ValidationError[];
@@ -16,7 +17,7 @@ function describe(err: ValidationError): string {
     case 'unknown_module':
       return 'Module not registered or removed';
     case 'cycle_detected':
-      return `Cycle detected: ${(err.node_ids || []).length} nodes`;
+      return `Cycle detected across ${(err.node_ids || []).length} nodes`;
     default:
       return err.type;
   }
@@ -26,29 +27,36 @@ export default function ValidationPanel({ errors, onFocusNode }: Props) {
   if (errors.length === 0) {
     return (
       <div style={{
-        padding: '0.5rem 0.75rem',
-        background: '#0e1f12',
-        borderBottom: '1px solid #244',
-        color: '#88dd88',
-        fontSize: '0.8rem',
+        padding: `${space.xs} ${space.lg}`,
+        borderBottom: `1px solid ${t.border}`,
+        color: t.success,
+        fontSize: font.xs,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
       }}>
-        Pipeline valid.
+        ● pipeline valid
       </div>
     );
   }
 
   return (
     <div style={{
-      padding: '0.5rem 0.75rem',
-      background: '#2a1414',
-      borderBottom: '1px solid #553',
-      maxHeight: '160px',
+      padding: `${space.sm} ${space.lg}`,
+      background: t.accentSoft,
+      borderBottom: `1px solid ${t.border}`,
+      maxHeight: '180px',
       overflow: 'auto',
     }}>
-      <div style={{ color: '#ff8866', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '0.4rem' }}>
+      <div style={{
+        color: t.danger,
+        fontSize: font.xs,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+        marginBottom: space.xs,
+      }}>
         {errors.length} validation issue{errors.length === 1 ? '' : 's'}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
         {errors.map((err, idx) => {
           const clickable = err.node_id || (err.node_ids && err.node_ids[0]);
           return (
@@ -59,15 +67,18 @@ export default function ValidationPanel({ errors, onFocusNode }: Props) {
                 if (id) onFocusNode(id);
               }}
               style={{
-                fontSize: '0.78rem',
-                color: '#e0c0c0',
-                padding: '0.2rem 0.4rem',
-                background: '#1a0e0e',
-                borderRadius: '3px',
+                fontSize: font.sm,
+                color: t.text,
+                padding: '0.25rem 0.5rem',
+                borderRadius: radius.sm,
                 cursor: clickable ? 'pointer' : 'default',
+                transition: 'background 0.15s ease',
               }}
+              onMouseEnter={(e) => { if (clickable) e.currentTarget.style.background = t.surfaceHover; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
             >
-              <span style={{ color: '#ff8866' }}>●</span> {describe(err)}
+              <span style={{ color: t.danger, marginRight: space.xs }}>●</span>
+              {describe(err)}
             </div>
           );
         })}

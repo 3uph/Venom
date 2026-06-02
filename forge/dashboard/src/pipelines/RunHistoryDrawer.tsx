@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api/client';
+import { t, space, radius, font } from '../theme/tokens';
 
 interface RunSummary {
   id: string;
@@ -25,10 +26,10 @@ function durationStr(started: string | null, finished: string | null): string {
 }
 
 function statusColor(s: string): string {
-  if (s === 'completed') return '#44ff44';
-  if (s === 'failed') return '#ff4444';
-  if (s === 'running') return '#ffaa00';
-  return '#888';
+  if (s === 'completed') return t.success;
+  if (s === 'failed') return t.danger;
+  if (s === 'running') return t.warning;
+  return t.textDim;
 }
 
 export default function RunHistoryDrawer({ pipelineId, refreshKey }: Props) {
@@ -49,7 +50,7 @@ export default function RunHistoryDrawer({ pipelineId, refreshKey }: Props) {
   };
 
   const handleDownload = async (runId: string, nodeId: string) => {
-    const token = localStorage.getItem('forge_token');
+    const token = localStorage.getItem('venom_token');
     const url = `/api/pipelines/${pipelineId}/runs/${runId}/artifacts/${nodeId}/download`;
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) {
@@ -66,77 +67,78 @@ export default function RunHistoryDrawer({ pipelineId, refreshKey }: Props) {
 
   return (
     <div style={{
-      background: '#141414', borderTop: '1px solid #333',
-      maxHeight: collapsed ? '32px' : '260px', overflow: 'hidden',
+      background: t.surface,
+      borderTop: `1px solid ${t.border}`,
+      maxHeight: collapsed ? '34px' : '280px',
+      overflow: 'hidden',
       transition: 'max-height 0.2s ease',
     }}>
       <div
         onClick={() => setCollapsed(!collapsed)}
         style={{
-          padding: '0.4rem 0.75rem', cursor: 'pointer', display: 'flex',
-          justifyContent: 'space-between', alignItems: 'center', background: '#1a1a1a',
+          padding: `${space.xs} ${space.md}`, cursor: 'pointer', display: 'flex',
+          justifyContent: 'space-between', alignItems: 'center',
+          borderBottom: collapsed ? 'none' : `1px solid ${t.border}`,
         }}
       >
-        <span style={{ color: '#888', fontSize: '0.85rem' }}>
+        <span style={{ color: t.textDim, fontSize: font.xs, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           Run history ({runs.length})
         </span>
-        <span style={{ color: '#666', fontSize: '0.8rem' }}>
+        <span style={{ color: t.textFaint, fontSize: font.xs }}>
           {collapsed ? '▲' : '▼'}
         </span>
       </div>
-      <div style={{ overflow: 'auto', maxHeight: '230px', padding: '0.5rem 0.75rem' }}>
-        {runs.length === 0 && <div style={{ color: '#555', fontSize: '0.8rem' }}>No runs yet.</div>}
+      <div style={{ overflow: 'auto', maxHeight: '240px', padding: space.sm }}>
+        {runs.length === 0 && (
+          <div style={{ color: t.textFaint, fontSize: font.sm, padding: space.sm }}>
+            No runs yet.
+          </div>
+        )}
         {runs.map((r) => (
           <div key={r.id} style={{
-            background: '#1a1a1a', padding: '0.4rem 0.6rem', marginBottom: '0.3rem',
-            borderRadius: '4px', border: '1px solid #2a2a2a',
+            background: t.surface2, padding: '0.45rem 0.7rem', marginBottom: '0.3rem',
+            borderRadius: radius.md, border: `1px solid ${t.border}`,
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ color: statusColor(r.status), fontSize: '0.85rem', minWidth: '80px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: space.sm }}>
+              <span style={{ color: statusColor(r.status), fontSize: font.sm, minWidth: '90px' }}>
                 ● {r.status}
               </span>
-              <span style={{ color: '#aaa', fontSize: '0.75rem', flex: 1 }}>
+              <span style={{ color: t.textDim, fontSize: font.xs, flex: 1 }}>
                 {r.started_at ? new Date(r.started_at).toLocaleTimeString() : '-'}
-                {' '}({durationStr(r.started_at, r.finished_at)})
+                {' · '}{durationStr(r.started_at, r.finished_at)}
               </span>
-              <button onClick={() => setExpanded(expanded === r.id ? null : r.id)} style={{
-                padding: '0.2rem 0.5rem', background: '#2a2a2a', border: '1px solid #444',
-                borderRadius: '3px', color: '#aaa', cursor: 'pointer', fontSize: '0.75rem',
-              }}>
+              <button onClick={() => setExpanded(expanded === r.id ? null : r.id)} style={miniBtn(t.textDim)}>
                 {expanded === r.id ? 'Hide' : 'Details'}
               </button>
-              <button onClick={() => handleRerun(r.id)} style={{
-                padding: '0.2rem 0.5rem', background: '#2a3a2a', border: '1px solid #4a8',
-                borderRadius: '3px', color: '#8e8', cursor: 'pointer', fontSize: '0.75rem',
-              }}>
+              <button onClick={() => handleRerun(r.id)} style={miniBtn(t.info)}>
                 Re-run
               </button>
             </div>
             {expanded === r.id && (
-              <div style={{ marginTop: '0.4rem', paddingTop: '0.4rem', borderTop: '1px solid #2a2a2a' }}>
-                {Object.entries(r.step_results || {}).map(([nodeId, step]: [string, any]) => (
-                  <div key={nodeId} style={{ fontSize: '0.75rem', color: '#bbb', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ color: statusColor(step.status), minWidth: '70px' }}>{step.status || '?'}</span>
-                    <span style={{ color: '#888', flex: 1, wordBreak: 'break-all' }}>
-                      {nodeId} → {step.module}/{step.function}
-                    </span>
-                    {step.output_path && (
-                      <button onClick={() => handleDownload(r.id, nodeId)} style={{
-                        padding: '0.15rem 0.4rem', background: '#2a2a2a', border: '1px solid #444',
-                        borderRadius: '3px', color: '#8cf', cursor: 'pointer', fontSize: '0.7rem',
-                      }}>
-                        Download
-                      </button>
-                    )}
-                  </div>
-                ))}
+              <div style={{ marginTop: space.sm, paddingTop: space.sm, borderTop: `1px solid ${t.border}` }}>
+                {Object.entries(r.step_results || {}).map(([nodeId, step]: [string, any]) => {
+                  if (nodeId === 'error' || nodeId === 'validation_errors') return null;
+                  return (
+                    <div key={nodeId} style={{ fontSize: font.xs, color: t.text, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: space.sm }}>
+                      <span style={{ color: statusColor(step.status), minWidth: '80px' }}>{step.status || '?'}</span>
+                      <span style={{ color: t.textDim, flex: 1, wordBreak: 'break-all' }}>
+                        {nodeId} → {step.module}/{step.function}
+                      </span>
+                      {step.output_path && (
+                        <button onClick={() => handleDownload(r.id, nodeId)} style={miniBtn(t.info)}>
+                          Download
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
                 {r.step_results?.error && (
-                  <div style={{ color: '#ff8866', fontSize: '0.75rem', marginTop: '0.3rem' }}>
+                  <div style={{ color: t.danger, fontSize: font.xs, marginTop: '0.3rem' }}>
                     Error: {r.step_results.error}
                   </div>
                 )}
                 {r.step_results?.validation_errors && (
-                  <div style={{ color: '#ff8866', fontSize: '0.75rem', marginTop: '0.3rem' }}>
+                  <div style={{ color: t.danger, fontSize: font.xs, marginTop: '0.3rem' }}>
                     {r.step_results.validation_errors.length} validation error(s)
                   </div>
                 )}
@@ -147,4 +149,16 @@ export default function RunHistoryDrawer({ pipelineId, refreshKey }: Props) {
       </div>
     </div>
   );
+}
+
+function miniBtn(color: string): React.CSSProperties {
+  return {
+    padding: '0.15rem 0.5rem',
+    background: 'transparent',
+    border: `1px solid ${t.border}`,
+    borderRadius: radius.sm,
+    color,
+    cursor: 'pointer',
+    fontSize: font.xs,
+  };
 }

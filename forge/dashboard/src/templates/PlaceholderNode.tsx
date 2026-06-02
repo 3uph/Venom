@@ -1,4 +1,5 @@
 import { Handle, Position, NodeProps } from '@xyflow/react';
+import { t, radius, font } from '../theme/tokens';
 
 export interface PlaceholderNodeData {
   placeholder_id: string;
@@ -11,24 +12,39 @@ export default function PlaceholderNode({ data }: NodeProps) {
   const nd = data as unknown as PlaceholderNodeData;
   return (
     <div style={{
-      padding: '0.5rem 0.75rem',
-      background: '#2a1f0e',
-      border: '2px dashed #cc8844',
-      borderRadius: '8px',
+      padding: '0.55rem 0.85rem',
+      background: t.surface,
+      border: `2px dashed ${t.placeholder}`,
+      borderRadius: radius.lg,
       minWidth: '180px',
     }}>
-      <div style={{ fontSize: '0.7rem', color: '#cc8844', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+      <div style={{
+        fontSize: font.xs,
+        color: t.placeholder,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+      }}>
         Placeholder
       </div>
-      <div style={{ fontSize: '0.9rem', color: '#ffd699', fontWeight: 'bold', marginTop: '0.15rem' }}>
+      <div style={{
+        fontSize: font.md,
+        color: t.text,
+        fontWeight: 600,
+        marginTop: '0.15rem',
+      }}>
         {nd.label}
       </div>
       {nd.hint && (
-        <div style={{ fontSize: '0.7rem', color: '#aa7733', marginTop: '0.15rem' }}>
+        <div style={{ fontSize: font.xs, color: t.textDim, marginTop: '0.15rem' }}>
           [{nd.hint}]
         </div>
       )}
-      <Handle type="source" position={Position.Right} id="output" style={{ background: '#cc8844', width: 10, height: 10 }} />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="output"
+        style={{ background: t.placeholder, width: 10, height: 10 }}
+      />
     </div>
   );
 }
