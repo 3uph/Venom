@@ -33,3 +33,17 @@ class PipelineRunOut(BaseModel):
     step_results: dict
 
     model_config = {"from_attributes": True}
+
+
+class ValidationErrorOut(BaseModel):
+    type: str
+    node_id: str | None = None
+    param: str | None = None
+    function: str | None = None
+    module_id: str | None = None
+    node_ids: list[str] = []
+
+
+class ValidationResultOut(BaseModel):
+    valid: bool
+    errors: list[ValidationErrorOut] = []
