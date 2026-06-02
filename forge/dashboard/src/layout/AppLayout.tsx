@@ -2,6 +2,7 @@ import { Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider';
 import ProjectListPage from '../projects/ProjectListPage';
 import ProjectDetailPage from '../projects/ProjectDetailPage';
+import ModuleRegistryPage from '../modules/ModuleRegistryPage';
 
 const navItems = [
   { path: '/projects', label: 'Projects' },
@@ -50,7 +51,7 @@ export default function AppLayout() {
           <Route path="/" element={<Navigate to="/projects" replace />} />
           <Route path="/projects" element={<ProjectListPage />} />
           <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
-          <Route path="/modules" element={<div>Modules (next task)</div>} />
+          <Route path="/modules" element={<ModuleRegistryPage />} />
         </Routes>
       </main>
     </div>
