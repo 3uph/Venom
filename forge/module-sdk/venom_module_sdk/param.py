@@ -8,6 +8,7 @@ class Param:
     required: bool = False
     description: str = ""
     options: list[str] = field(default_factory=list)
+    accepts: str = ""
 
     def to_dict(self) -> dict:
         d = {
@@ -18,4 +19,6 @@ class Param:
         }
         if self.options:
             d["options"] = self.options
+        if self.accepts:
+            d["accepts"] = self.accepts
         return d

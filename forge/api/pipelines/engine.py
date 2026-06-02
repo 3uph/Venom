@@ -1,3 +1,4 @@
+import hashlib
 import httpx
 import json
 from pathlib import Path
@@ -127,11 +128,14 @@ async def execute_pipeline(pipeline_id: str, run_id: str, db_factory) -> None:
                     if temp_path.exists():
                         temp_path.rename(final_path)
                     step_results[tnid]["output_path"] = str(final_path)
+                    file_bytes = final_path.read_bytes()
                     pf = ProjectFile(
                         project_id=pipeline.project_id,
                         filename=final_path.name,
                         file_type="output",
                         path=str(final_path),
+                        sha256=hashlib.sha256(file_bytes).hexdigest(),
+                        size_bytes=len(file_bytes),
                     )
                     db.add(pf)
 
