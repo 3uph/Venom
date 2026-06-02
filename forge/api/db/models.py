@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Text, Integer, DateTime, ForeignKey, JSON
+from sqlalchemy import String, Text, Integer, DateTime, Boolean, ForeignKey, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from api.db.engine import Base
 
@@ -19,6 +19,8 @@ class Project(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
     name: Mapped[str] = mapped_column(String(255))
     description: Mapped[str] = mapped_column(Text, default="")
+    notes: Mapped[str] = mapped_column(Text, default="")
+    archived: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
 
@@ -34,6 +36,8 @@ class ProjectFile(Base):
     filename: Mapped[str] = mapped_column(String(255))
     file_type: Mapped[str] = mapped_column(String(50))
     path: Mapped[str] = mapped_column(String(512))
+    sha256: Mapped[str] = mapped_column(String(64), default="")
+    size_bytes: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
 
     project: Mapped["Project"] = relationship(back_populates="files")
@@ -77,3 +81,16 @@ class PipelineRun(Base):
     step_results: Mapped[dict] = mapped_column(JSON, default=dict)
 
     pipeline: Mapped["Pipeline"] = relationship(back_populates="runs")
+
+
+class PipelineTemplate(Base):
+    __tablename__ = "pipeline_templates"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=new_uuid)
+    name: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str] = mapped_column(Text, default="")
+    tags: Mapped[list] = mapped_column(JSON, default=list)
+    graph: Mapped[dict] = mapped_column(JSON, default=dict)
+    placeholders: Mapped[list] = mapped_column(JSON, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=utcnow, onupdate=utcnow)
