@@ -4,9 +4,12 @@ import ProjectListPage from '../projects/ProjectListPage';
 import ProjectDetailPage from '../projects/ProjectDetailPage';
 import ModuleRegistryPage from '../modules/ModuleRegistryPage';
 import PipelineEditorPage from '../pipelines/PipelineEditorPage';
+import TemplatesPage from '../templates/TemplatesPage';
+import TemplateDetailPage from '../templates/TemplateDetailPage';
 
 const navItems = [
   { path: '/projects', label: 'Projects' },
+  { path: '/templates', label: 'Templates' },
   { path: '/modules', label: 'Modules' },
 ];
 
@@ -53,6 +56,8 @@ export default function AppLayout() {
           <Route path="/projects" element={<ProjectListPage />} />
           <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
           <Route path="/modules" element={<ModuleRegistryPage />} />
+          <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/templates/:templateId" element={<TemplateDetailPage />} />
           <Route path="/projects/:projectId/pipelines/:pipelineId" element={<PipelineEditorPage />} />
         </Routes>
       </main>

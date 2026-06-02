@@ -8,6 +8,7 @@ import {
   Connection,
   Background,
   Controls,
+  MiniMap,
   BackgroundVariant,
   Node,
   Edge,
@@ -23,8 +24,11 @@ import NodeConfigPanel from './NodeConfigPanel';
 import PipelineToolbar from './PipelineToolbar';
 import FilePalette from './FilePalette';
 import ValidationPanel from './ValidationPanel';
+import RunHistoryDrawer from './RunHistoryDrawer';
+import SaveAsTemplateDialog from './SaveAsTemplateDialog';
 import usePipelineValidation from './usePipelineValidation';
 import usePipelineExecution from './usePipelineExecution';
+import { autoLayout } from './autoLayout';
 
 const nodeTypes: NodeTypes = {
   moduleNode: ModuleNode,
@@ -41,7 +45,7 @@ interface ManifestFunction {
 interface Module {
   id: string;
   name: string;
-  manifest_cache: { functions?: ManifestFunction[] } | null;
+  manifest_cache: { functions?: ManifestFunction[]; category?: string } | null;
 }
 
 interface ProjectFile {
@@ -59,6 +63,8 @@ function PipelineEditorInner() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [pipelineName, setPipelineName] = useState('');
   const [validationTrigger, setValidationTrigger] = useState(0);
+  const [showSaveAsTemplate, setShowSaveAsTemplate] = useState(false);
+  const [runHistoryRefresh, setRunHistoryRefresh] = useState(0);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition, setCenter } = useReactFlow();
 
@@ -79,6 +85,13 @@ function PipelineEditorInner() {
       });
     }
   }, [pipelineId, projectId]);
+
+  // Bump history refresh once execution finishes
+  useEffect(() => {
+    if (execution.finalStatus) {
+      setRunHistoryRefresh((v) => v + 1);
+    }
+  }, [execution.finalStatus]);
 
   const moduleById = useMemo(() => {
     const map: Record<string, Module> = {};
@@ -163,6 +176,10 @@ function PipelineEditorInner() {
     if (pipelineId) execution.start(pipelineId);
   };
 
+  const handleAutoLayout = () => {
+    setNodes(autoLayout(nodes, edges));
+  };
+
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
@@ -222,6 +239,8 @@ function PipelineEditorInner() {
         onAddNode={handleAddNode}
         onSave={handleSave}
         onExecute={handleExecute}
+        onSaveAsTemplate={() => setShowSaveAsTemplate(true)}
+        onAutoLayout={handleAutoLayout}
         executing={execution.running}
         canExecute={validation.valid && nodes.some((n) => n.type === 'moduleNode')}
         validationCount={validation.errors.length}
@@ -242,6 +261,21 @@ function PipelineEditorInner() {
           >
             <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#222" />
             <Controls />
+            <MiniMap
+              nodeColor={(n) => {
+                if (n.type === 'projectFileNode') return '#266';
+                if (n.type === 'moduleNode') {
+                  const d = n.data as any;
+                  if (d?.has_validation_error) return '#ff4444';
+                  if (d?.status === 'completed') return '#44ff44';
+                  if (d?.status === 'running') return '#ffaa00';
+                  return '#555';
+                }
+                return '#444';
+              }}
+              maskColor="rgba(0,0,0,0.6)"
+              style={{ background: '#1a1a1a' }}
+            />
           </ReactFlow>
         </div>
         {selected && selected.type === 'moduleNode' && projectId && (
@@ -253,6 +287,16 @@ function PipelineEditorInner() {
           />
         )}
       </div>
+      {pipelineId && (
+        <RunHistoryDrawer pipelineId={pipelineId} refreshKey={runHistoryRefresh} />
+      )}
+      {showSaveAsTemplate && pipelineId && (
+        <SaveAsTemplateDialog
+          pipelineId={pipelineId}
+          onClose={() => setShowSaveAsTemplate(false)}
+          onSaved={() => setShowSaveAsTemplate(false)}
+        />
+      )}
     </div>
   );
 }
