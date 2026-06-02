@@ -1,3 +1,4 @@
+import hashlib
 import shutil
 from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, status
@@ -17,12 +18,15 @@ def _project_dir(project_id: str) -> Path:
 
 
 @router.get("", response_model=list[ProjectListOut])
-def list_projects(db: Session = Depends(get_db)):
-    projects = db.query(Project).order_by(Project.created_at.desc()).all()
+def list_projects(include_archived: bool = False, db: Session = Depends(get_db)):
+    q = db.query(Project)
+    if not include_archived:
+        q = q.filter(Project.archived == False)  # noqa: E712
+    projects = q.order_by(Project.created_at.desc()).all()
     result = []
     for p in projects:
         result.append(ProjectListOut(
-            id=p.id, name=p.name, description=p.description,
+            id=p.id, name=p.name, description=p.description, archived=p.archived,
             created_at=p.created_at, file_count=len(p.files)
         ))
     return result
@@ -58,6 +62,32 @@ def update_project(project_id: str, body: ProjectUpdate, db: Session = Depends(g
         project.name = body.name
     if body.description is not None:
         project.description = body.description
+    if body.notes is not None:
+        project.notes = body.notes
+    if body.archived is not None:
+        project.archived = body.archived
+    db.commit()
+    db.refresh(project)
+    return project
+
+
+@router.post("/{project_id}/archive", response_model=ProjectOut)
+def archive_project(project_id: str, db: Session = Depends(get_db)):
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    project.archived = True
+    db.commit()
+    db.refresh(project)
+    return project
+
+
+@router.post("/{project_id}/restore", response_model=ProjectOut)
+def restore_project(project_id: str, db: Session = Depends(get_db)):
+    project = db.get(Project, project_id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    project.archived = False
     db.commit()
     db.refresh(project)
     return project
@@ -83,18 +113,22 @@ def upload_file(project_id: str, file_type: str = "shellcode", file: UploadFile 
     dest_dir = _project_dir(project_id) / "uploads"
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest = dest_dir / file.filename
+    contents = file.file.read()
     with open(dest, "wb") as f:
-        f.write(file.file.read())
+        f.write(contents)
+    sha256 = hashlib.sha256(contents).hexdigest()
     pf = ProjectFile(
         project_id=project_id,
         filename=file.filename,
         file_type=file_type,
         path=str(dest),
+        sha256=sha256,
+        size_bytes=len(contents),
     )
     db.add(pf)
     db.commit()
     db.refresh(pf)
-    return {"id": pf.id, "filename": pf.filename}
+    return {"id": pf.id, "filename": pf.filename, "sha256": sha256, "size_bytes": pf.size_bytes}
 
 
 @router.get("/{project_id}/files/{file_id}/download")
